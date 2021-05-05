@@ -4,8 +4,11 @@ WORKDIR /yggnode-api
 
 RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+# 
+# COPY requirements.txt requirements.txt
+# RUN pip install -r requirements.txt
+
+RUN pip3 install flask torrentool
 
 COPY . .
 
