@@ -16,6 +16,7 @@ services:
     volumes:
       - path/to/blackhole:/yggnode-resync/blackhole:rw
       - path/to/Config/:/yggnode-resync/config:ro
+      - path/to/logs/:/yggnode-resync/logs:rw
   yggnode:
     container_name: yggnode
     image: yggnode/yggnode-api
@@ -42,6 +43,7 @@ services:
     volumes:
       - path/to/blackhole:/yggnode-api/blackhole:ro
       - path/to/Config/:/yggnode-api/config:ro
+      - path/to/logs/:/yggnode-api/logs:rw
 
 networks:
   traefik_network:

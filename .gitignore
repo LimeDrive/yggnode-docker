@@ -4,7 +4,7 @@ torrents/
 annexes.txt
 idCat.txt
 test.py
-resync.py
+# resync.py
 geckodriver.log
 __pycache__/*
 templates/form_files/*
