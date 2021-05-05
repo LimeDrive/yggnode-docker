@@ -38,13 +38,13 @@ services:
       - traefik.http.services.yggnode.loadbalancer.server.port=5000
       - traefik.http.routers.yggnode.tls=true
       - traefik.http.routers.yggnode.tls.certresolver=leresolver
+      - com.centurylinklabs.watchtower.enable=true
       # - traefik.http.routers.yggnode.middlewares=yggnode-auth
       # - traefik.http.middlewares.yggnode-auth.basicauth.usersfile=/password/yggnode/.htpasswd
     volumes:
       - /home/yggnode/blackhole/:/yggnode-api/blackhole
       - /home/yggnode/Config/yggnodeConf/:/yggnode-api/config:ro
       - /home/yggnode/logs/:/yggnode-api/logs:rw
-
 networks:
   traefik_network:
     external: True

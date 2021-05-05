@@ -1,0 +1,13 @@
+---
+version: "3.8"
+
+services:
+    watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower:latest
+    restart: unless-stopped
+    command: '--label-enable --cleanup --schedule "0 0 4 * * *"'
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

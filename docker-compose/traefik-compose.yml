@@ -22,6 +22,7 @@ services:
       - traefik.http.routers.api.tls.certresolver=leresolver
       - traefik.http.routers.api.middlewares=api-auth
       - traefik.http.middlewares.api-auth.basicauth.usersfile=/password/traefik/.htpasswd
+      - com.centurylinklabs.watchtower.enable=true
     ports:
       - "80:80"
       - "443:443"
