@@ -1,0 +1,46 @@
+---
+version: "3.8"
+
+services:
+  resync:
+    container_name: resync
+    image: yggnode/yggnode-resync
+    restart: on-failure
+    environment:
+      - TZ=Europe/Paris
+    networks:
+      - yggnode_network
+      - cloudflare
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    volumes:
+      - path/to/blackhole:/yggnode-resync/blackhole:rw
+      - path/to/Config/:/yggnode-resync/config:ro
+  yggnode:
+    container_name: yggnode
+    image: yggnode/yggnode-api
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Paris
+      - PUID=1000
+      - PGID=1000
+    expose:
+      - '5000'
+    networks:
+      - traefik_network
+      - yggnode_network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_network
+      - traefik.http.routers.yggnode.entrypoints=web,websecure
+      - traefik.http.routers.yggnode.rule=Host(`mondomaine.com`)
+      - traefik.http.services.yggnode.loadbalancer.server.port=5000
+      - traefik.http.routers.yggnode.tls=true
+      - traefik.http.routers.yggnode.tls.certresolver=leresolver
+      # - traefik.http.routers.plex.middlewares=yggnode-auth
+      # - traefik.http.middlewares.yggnode-auth.basicauth.usersfile=/password/yggnode/.htpasswd
+    volumes:
+      - path/to/blackhole:/yggnode-api/blackhole:ro
+      - path/to/Config/:/yggnode-api/config:ro
+
+
