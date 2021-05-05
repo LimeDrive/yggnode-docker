@@ -79,9 +79,9 @@ if __name__ == '__main__':
 
 
     # construct string containing ip and port server
-    # FlaresolverrPath = "http://" + str(serverConfiguration["flaresolverr"]["ipAdress"]) + ":" + \
-    #                    str(serverConfiguration["flaresolverr"]["port"])
-    FlaresolverrPath = "http://flaresolverr:8191"
+    FlaresolverrPath = "http://" + str(serverConfiguration["flaresolverr"]["ipAdress"]) + ":" + \
+                       str(serverConfiguration["flaresolverr"]["port"])
+    # FlaresolverrPath = "http://flaresolverr:8191"
 
     nodeURL = serverConfiguration["node"]["protocol"] + "://" + str(
         serverConfiguration["node"]["ipAdress"]) + ":" + str(serverConfiguration["node"]["port"])

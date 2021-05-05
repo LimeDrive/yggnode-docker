@@ -1,7 +1,7 @@
 # Details about flaresolverr server location
 # Accessing to it by default using http protocol
 flaresolverr:
-  ipAdress: flareServerIp
+  ipAdress: flaresolverr # Could Replace directly in the code for docker. 
   port: 8191
 
 # Details about node Server
@@ -9,9 +9,9 @@ node:
 # Example : rss.example.net
   ipAdress: DomainNameOrIp
 # Port where service is listening. Even with https enable, port could be randomly different such as 20385 or anything else.
-  port: 443
+  port: 443 ### no need anymore to put the port, config are done buy traefik
 # Protocol to use to access this server
-  protocol: https
+  protocol: https ### Same fo the protocol, https can be forced anyway from 80 to 443 or other ports
 
 # YGG categories details including idNumber and name associated with.
 sub-Categories:

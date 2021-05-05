@@ -14,9 +14,9 @@ services:
     labels:
       - com.centurylinklabs.watchtower.enable=true
     volumes:
-      - path/to/blackhole:/yggnode-resync/blackhole:rw
-      - path/to/Config/:/yggnode-resync/config:ro
-      - path/to/logs/:/yggnode-resync/logs:rw
+      - /home/yggnode/blackhole:/yggnode-resync/blackhole:rw
+      - /home/yggnode/Config/yggnodeConf/:/yggnode-resync/config:ro
+      - /home/yggnode/logs/:/yggnode-resync/logs:rw
   yggnode:
     container_name: yggnode
     image: yggnode/yggnode-api
@@ -41,9 +41,9 @@ services:
       # - traefik.http.routers.yggnode.middlewares=yggnode-auth
       # - traefik.http.middlewares.yggnode-auth.basicauth.usersfile=/password/yggnode/.htpasswd
     volumes:
-      - path/to/blackhole:/yggnode-api/blackhole:ro
-      - path/to/Config/:/yggnode-api/config:ro
-      - path/to/logs/:/yggnode-api/logs:rw
+      - /home/yggnode/blackhole/:/yggnode-api/blackhole
+      - /home/yggnode/Config/yggnodeConf/:/yggnode-api/config:ro
+      - /home/yggnode/logs/:/yggnode-api/logs:rw
 
 networks:
   traefik_network:
