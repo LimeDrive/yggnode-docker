@@ -38,7 +38,7 @@ services:
       - traefik.http.services.yggnode.loadbalancer.server.port=5000
       - traefik.http.routers.yggnode.tls=true
       - traefik.http.routers.yggnode.tls.certresolver=leresolver
-      # - traefik.http.routers.plex.middlewares=yggnode-auth
+      # - traefik.http.routers.yggnode.middlewares=yggnode-auth
       # - traefik.http.middlewares.yggnode-auth.basicauth.usersfile=/password/yggnode/.htpasswd
     volumes:
       - path/to/blackhole:/yggnode-api/blackhole:ro
