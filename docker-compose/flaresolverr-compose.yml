@@ -1,0 +1,22 @@
+---
+version: '3.8'
+
+services:
+
+  flaresolverr:
+    container_name: flaresolverr
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    restart: on-failure
+    environment:
+      - LOG_LEVEL=info
+      - CAPTCHA_SOLVER=hcaptcha-solver
+    expose:
+      - "8191"
+    networks:
+      - cloudflare
+
+networks:
+  traefik_network:
+    external: True
+  cloudflare:
+    external: false

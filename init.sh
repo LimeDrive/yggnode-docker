@@ -21,7 +21,7 @@ sudo docker run -d \
   --name=flaresolverr \
   -p 8191:8191 \
   -e LOG_LEVEL=info \
-  --restart unless-stopped \
+  --restart on-failure \
   ghcr.io/flaresolverr/flaresolverr:latest
 sudo rm /etc/apache2/sites-enabled/000-defaul*
 sudo tee -a /etc/apache2/sites-enabled/000-default.conf <<EOF

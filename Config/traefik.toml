@@ -1,0 +1,26 @@
+[api]
+  dashbord = true
+
+[entryPoints.web]
+  address = ":80"
+
+  [entryPoints.web.http]
+    [entryPoints.web.http.redirections]
+      [entryPoints.web.http.redirections.entryPoint]
+        to = "websecure"
+        scheme = "https"
+
+[entryPoints.websecure]
+  address = ":443"
+
+[certificatesResolvers.leresolver.acme]
+  email = "yggnode@mondomaine.com"
+  storage = "acme.json"
+  [certificatesResolvers.leresolver.acme.httpChallenge]
+    entryPoint = "web"
+
+[providers.docker]
+  endpoint = "unix:///var/run/docker.sock"
+  exposedByDefault = false
+  network = "traefik_network"
+  watch = true
