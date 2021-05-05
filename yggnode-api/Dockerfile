@@ -1,14 +1,14 @@
 FROM python:3.9-slim-buster
 
 WORKDIR /yggnode-api
+ENV TZ=Europe/Paris
 
-RUN pip install --upgrade pip
-RUN pip install --upgrade setuptools
-# 
-# COPY requirements.txt requirements.txt
-# RUN pip install -r requirements.txt
-
-RUN pip3 install flask torrentool
+RUN mkdir --parents blackhole/{torrents,rss}/tmp config/
+RUN pip install --upgrade && pip --upgrade setuptools && \
+pip install \
+flask \
+PyYAML \
+torrentool
 
 COPY . .
 
