@@ -43,4 +43,12 @@ services:
       - path/to/blackhole:/yggnode-api/blackhole:ro
       - path/to/Config/:/yggnode-api/config:ro
 
+networks:
+  traefik_network:
+    external: True
+  cloudflare:
+    external: false
+  yggnode_network:
+    external: false
+
 
