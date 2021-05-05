@@ -24,24 +24,24 @@ def ManageTorrents(rssData, CFcookies, idCat, categories, domainName, logger):
     rssTorrentsListId = re.findall("id=[0-9]{6}", rssData)
 
     # check if rss file for category requested is available
-    if os.path.isfile(os.getcwd() + "/yggnode-resync/blackhole/rss/" + idCat + ".xml") and (int(idCat) not in categories):
-        oldRssFile = open(os.getcwd() + "/yggnode-resync/blackhole/rss/" + idCat + ".xml", "r")
+    if os.path.isfile(os.getcwd() + "blackhole/rss/" + idCat + ".xml") and (int(idCat) not in categories):
+        oldRssFile = open(os.getcwd() + "blackhole/rss/" + idCat + ".xml", "r")
         oldRssString = oldRssFile.read()
         oldRssFile.close()
         oldRssTorrentsListId = re.findall("id=[0-9]{6}", oldRssString)
         for oldIdTorrent in oldRssTorrentsListId:
-            if (oldIdTorrent not in rssTorrentsListId) and (os.path.isfile("/yggnode-resync/blackhole/torrents/" + (re.split("=", oldIdTorrent)[1]) + ".torrent")):
+            if (oldIdTorrent not in rssTorrentsListId) and (os.path.isfile("blackhole/torrents/" + (re.split("=", oldIdTorrent)[1]) + ".torrent")):
                 print("removing --> " + (re.split("=", oldIdTorrent)[1]))
-                os.remove(os.getcwd() + "/yggnode-resync/blackhole/torrents/" + (re.split("=", oldIdTorrent)[1]) + ".torrent")
+                os.remove(os.getcwd() + "blackhole/torrents/" + (re.split("=", oldIdTorrent)[1]) + ".torrent")
 
     headers = {'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     for torrentId in rssTorrentsListId:
         # if node haven't yet download torrent designated by this ID, then download it through flaresolverr
-        if not (os.path.exists(os.getcwd() + "/yggnode-resync/blackhole/torrents/" + str(re.split("=", torrentId)[1]) + ".torrent")):
+        if not (os.path.exists(os.getcwd() + "blackhole/torrents/" + str(re.split("=", torrentId)[1]) + ".torrent")):
             r = requests.get("https://" + domainName + "/rss/download?id=" + str(
                 re.split("=", torrentId)[1]) + "&passkey=TNdVQssYfP3GTDnB3ijgE37c8MVvkASH", cookies=CFcookies,
                              headers=headers, stream=True, timeout=25)
-            torrentFile = open(os.getcwd() + "/yggnode-resync/blackhole/torrents/" + str(re.split("=", torrentId)[1]) + ".torrent", "wb")
+            torrentFile = open(os.getcwd() + "blackhole/torrents/" + str(re.split("=", torrentId)[1]) + ".torrent", "wb")
             for chunk in r.iter_content(chunk_size=8192):
                 torrentFile.write(chunk)
             torrentFile.close()
@@ -68,14 +68,14 @@ def changeDownloadUrl(rssFeed, serverURL, domainName, logger):
     return re.sub("https://" + domainName + "/rss/", serverURL + "/", rssFeed)
 
 if __name__ == '__main__':
-    confFile = open(os.getcwd() + "/yggnode-resync/config/annexes.yml", 'r')
+    confFile = open(os.getcwd() + "config/annexes.yml", 'r')
     serverConfiguration = yaml.safe_load(confFile)
     confFile.close()
 
-    if not (os.path.exists(os.getcwd() + "/yggnode-resync/logs/")):
-        os.mkdir(os.getcwd() + '/yggnode-resync/logs')
+    if not (os.path.exists(os.getcwd() + "logs/")):
+        os.mkdir(os.getcwd() + 'logs')
 
-    logging.basicConfig(level=logging.INFO, filename=os.getcwd() + "/yggnode-resync/logs/yggnode-resync.log")
+    logging.basicConfig(level=logging.INFO, filename=os.getcwd() + "logs/yggnode-resync.log")
 
 
     # construct string containing ip and port server
@@ -106,7 +106,7 @@ if __name__ == '__main__':
                     ManageTorrents(rssString, cookies, str(idCat), catList, serverConfiguration["yggDomainName"], logging)
                 # write rss feed and erasing old xml file
                 rssString = (changeDownloadUrl(rssString, nodeURL, serverConfiguration["yggDomainName"], logging))
-                file = open(os.getcwd() + "/yggnode-resync/blackhole/rss/" + str(idCat) + ".xml", "w")
+                file = open(os.getcwd() + "blackhole/rss/" + str(idCat) + ".xml", "w")
                 file.write(rssString)
                 file.close()
                 logging.info("RSS feed correctly received and analyzed")
