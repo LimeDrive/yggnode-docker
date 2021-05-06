@@ -1,0 +1,113 @@
+---
+version: "3.8"
+
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:latest
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Paris
+    command:
+      - --accesslog.fields.names.StartUTC=drop
+      - --api=true
+    networks:
+      - traefik_network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.api.rule=Host(`traefik.mondomaine.com`)
+      - traefik.http.routers.api.entrypoints=web,websecure
+      - traefik.http.routers.api.service=api@internal
+      - traefik.http.routers.api.tls=true
+      - traefik.http.routers.api.tls.certresolver=leresolver
+      - traefik.http.routers.api.middlewares=api-auth
+      - traefik.http.middlewares.api-auth.basicauth.usersfile=/password/.htpasswd
+      - com.centurylinklabs.watchtower.enable=true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /yggnode-docker/Config/traefik/traefik.toml:/traefik.toml:ro
+      - /yggnode-docker/Config/password:/password:ro
+      - /yggnode-docker/Config/traefik/acme.json:/acme.json
+
+  flaresolverr:
+    container_name: flaresolverr
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    restart: on-failure
+    environment:
+      - LOG_LEVEL=info
+      - CAPTCHA_SOLVER=hcaptcha-solver
+    expose:
+      - "8191"
+    networks:
+      - cloudflare
+
+  resync:
+    container_name: resync
+    # image: yggnode/yggnode-resync
+    build: /yggnode-docker/yggnode-resync
+    restart: on-failure
+    environment:
+      - TZ=Europe/Paris
+    networks:
+      - yggnode_network
+      - cloudflare
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    volumes:
+      - /yggnode-docker/blackhole:/yggnode-resync/blackhole:rw
+      - /yggnode-docker/Config/yggnodeConf:/yggnode-resync/config:ro
+      - /yggnode-docker/logs:/yggnode-resync/logs:rw
+    depends_on:
+      - flaresolverr
+
+  yggnode:
+    container_name: yggnode
+    # image: yggnode/yggnode-api
+    build: /yggnode-docker/yggnode-api
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Paris
+    expose:
+      - "5000"
+    networks:
+      - traefik_network
+      - yggnode_network
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik_network
+      - traefik.http.routers.yggnode.entrypoints=web,websecure
+      - traefik.http.routers.yggnode.rule=Host(`rss.mondomaine.com`)
+      - traefik.http.services.yggnode.loadbalancer.server.port=5000
+      - traefik.http.routers.yggnode.tls=true
+      - traefik.http.routers.yggnode.tls.certresolver=leresolver
+      - com.centurylinklabs.watchtower.enable=true
+      # - traefik.http.routers.yggnode.middlewares=yggnode-auth
+      # - traefik.http.middlewares.yggnode-auth.basicauth.usersfile=/password/yggnode/.htpasswd
+    volumes:
+      - /yggnode-docker/blackhole:/yggnode-api/blackhole
+      - /yggnode-docker/Config/yggnodeConf:/yggnode-api/config:ro
+      - /yggnode-docker/logs:/yggnode-api/logs:rw
+    depends_on:
+      - traefik
+      - resync
+
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower:latest
+    restart: unless-stopped
+    command: '--label-enable --cleanup --schedule "0 0 4 * * *"'
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  traefik_network:
+    external: True
+  cloudflare:
+    external: false
+  yggnode_network:
+    external: false

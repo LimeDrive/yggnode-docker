@@ -1,5 +1,5 @@
 [api]
-  dashbord = true
+  dashboard = true
 
 [entryPoints.web]
   address = ":80"

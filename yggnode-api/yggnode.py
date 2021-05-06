@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    confFile = open(os.getcwd() + "config/annexes.yml", 'r')
+    confFile = open(os.getcwd() + "/config/annexes.yml", 'r')
     serverConfiguration = yaml.safe_load(confFile)
     confFile.close()
     return "USE : <br> \
@@ -31,17 +31,17 @@ def index():
 @app.route('/download', methods=['GET'])
 def generatingTorrent():
     remoteTempTorrent()
-    if not (os.path.isfile(os.getcwd() + "blackhole/torrents/" + request.args.get("id") + ".torrent")):
+    if not (os.path.isfile(os.getcwd() + "/blackhole/torrents/" + request.args.get("id") + ".torrent")):
         return "torrent unavailable"
     # grab torrent file matching id provided
-    my_torrent = Torrent.from_file(os.getcwd() + "blackhole/torrents/" + request.args.get("id") + ".torrent")
+    my_torrent = Torrent.from_file(os.getcwd() + "/blackhole/torrents/" + request.args.get("id") + ".torrent")
     # changing passkey for one transmitted as parameter by user
     newUrlTracker = re.sub("[a-zA-Z0-9]{32}", request.args.get("passkey"), ((my_torrent.announce_urls[0])[0]))
     my_torrent.announce_urls = newUrlTracker
     # write it in temp dir for more clarity
-    my_torrent.to_file(os.getcwd() + "blackhole/torrents/tmp/" + request.args.get("id") + request.args.get("passkey") + ".torrent")
+    my_torrent.to_file(os.getcwd() + "/blackhole/torrents/tmp/" + request.args.get("id") + request.args.get("passkey") + ".torrent")
     # send torrent file
-    return send_file(os.getcwd() + "blackhole/torrents/tmp/" + request.args.get("id") + request.args.get("passkey") + ".torrent",
+    return send_file(os.getcwd() + "/blackhole/torrents/tmp/" + request.args.get("id") + request.args.get("passkey") + ".torrent",
                      as_attachment=True,
                      attachment_filename=(my_torrent.name + ".torrent"),
                      mimetype='application/x-bittorrent')
@@ -59,11 +59,11 @@ def generatingRSS():
     if request.args.get("passkey") is None:
         return "passkey not provided : please send one as parameter 'passkey'"
 
-    if not (os.path.isfile(os.getcwd() + "blackhole/rss/" + request.args.get("id") + ".xml")):
+    if not (os.path.isfile(os.getcwd() + "/blackhole/rss/" + request.args.get("id") + ".xml")):
         return "rss file unavailable for this category at the moment"
 
     # opens last updated rss file corresponding to the category called
-    rssFile = open(os.getcwd() + "blackhole/rss/" + request.args.get("id") + ".xml", "r")
+    rssFile = open(os.getcwd() + "/blackhole/rss/" + request.args.get("id") + ".xml", "r")
     txt = rssFile.read()
     rssFile.close()
     # create a temp rss generated file with both category and passkey as name to avoid potential simultaneous access
@@ -75,16 +75,16 @@ def generatingRSS():
 def remoteTempTorrent():
     now = time.time()
     # browses all files and delete every having more than 5 secs of existence
-    for torrentFile in os.listdir(os.getcwd() + "blackhole/torrents/tmp/"):
-        if os.stat(os.getcwd() + "blackhole/torrents/tmp/" + torrentFile).st_mtime < now:
-            os.remove(os.getcwd() + "blackhole/torrents/tmp/" + torrentFile)
+    for torrentFile in os.listdir(os.getcwd() + "/blackhole/torrents/tmp/"):
+        if os.stat(os.getcwd() + "/blackhole/torrents/tmp/" + torrentFile).st_mtime < now:
+            os.remove(os.getcwd() + "/blackhole/torrents/tmp/" + torrentFile)
 
 @app.route('/links', methods=['GET'])
 def generateLinks():
     if request.args.get("passkey") == None or len(request.args.get("passkey")) != 32:
         return render_template('form.html')
     else:
-        confFile = open(os.getcwd() + 'Config/annexes.yml', 'r')
+        confFile = open(os.getcwd() + '/config/annexes.yml', 'r')
         serverConfiguration = yaml.safe_load(confFile)
         confFile.close()
         renderTxt = "Flux généralistes : <br>"
@@ -104,26 +104,26 @@ def generateLinks():
 
 @app.route('/status', methods=['GET'])
 def getStatus():
-    confFile = open(os.getcwd() + 'Config/annexes.yml', 'r')
+    confFile = open(os.getcwd() + '/config/annexes.yml', 'r')
     serverConfiguration = yaml.safe_load(confFile)
     confFile.close()
     now = time.time()
     renderTxt = ""
     for index in range(len(serverConfiguration["Categories"]["id"])):
-        renderTxt += "<strong>" + serverConfiguration["Categories"]["idLabel"][index] + "</strong> : " + str(time.ctime(os.stat(os.getcwd() + "blackhole/rss/" + str(serverConfiguration["Categories"]["id"][index]) + ".xml").st_mtime)) + "<br>"
+        renderTxt += "<strong>" + serverConfiguration["Categories"]["idLabel"][index] + "</strong> : " + str(time.ctime(os.stat(os.getcwd() + "/blackhole/rss/" + str(serverConfiguration["Categories"]["id"][index]) + ".xml").st_mtime)) + "<br>"
     renderTxt += "<br><br>"
     for index in range(len(serverConfiguration["sub-Categories"]["id"])):
-        renderTxt += "<strong>" + serverConfiguration["sub-Categories"]["idLabel"][index] + "</strong> : " + str(time.ctime(os.stat(os.getcwd() + "blackhole/rss/" + str(serverConfiguration["sub-Categories"]["id"][index]) + ".xml").st_mtime)) + "<br>"
+        renderTxt += "<strong>" + serverConfiguration["sub-Categories"]["idLabel"][index] + "</strong> : " + str(time.ctime(os.stat(os.getcwd() + "/blackhole/rss/" + str(serverConfiguration["sub-Categories"]["id"][index]) + ".xml").st_mtime)) + "<br>"
 
     return renderTxt
 
 if __name__ == '__main__':
     # initialize working environment for python server
-    if not (os.path.exists(os.getcwd() + "blackhole/rss/")):
-        os.mkdir(os.getcwd() + 'blackhole/rss')
-    if not (os.path.exists(os.getcwd() + "blackhole/torrents/")):
-        os.mkdir(os.getcwd() + 'blackhole/torrents')
-    if not (os.path.exists(os.getcwd() + "blackhole/torrents/tmp")):
-        os.mkdir(os.getcwd() + 'blackhole/torrents/tmp')
+    if not (os.path.exists(os.getcwd() + "/blackhole/rss/")):
+        os.mkdir(os.getcwd() + '/blackhole/rss')
+    if not (os.path.exists(os.getcwd() + "/blackhole/torrents/")):
+        os.mkdir(os.getcwd() + '/blackhole/torrents')
+    if not (os.path.exists(os.getcwd() + "/blackhole/torrents/tmp")):
+        os.mkdir(os.getcwd() + '/blackhole/torrents/tmp')
 
     app.run(host='0.0.0.0', port=5000)

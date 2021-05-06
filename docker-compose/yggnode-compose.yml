@@ -17,6 +17,9 @@ services:
       - /home/yggnode/blackhole:/yggnode-resync/blackhole:rw
       - /home/yggnode/Config/yggnodeConf/:/yggnode-resync/config:ro
       - /home/yggnode/logs/:/yggnode-resync/logs:rw
+    depends_on:
+      - flaresolverr
+
   yggnode:
     container_name: yggnode
     image: yggnode/yggnode-api
@@ -45,6 +48,9 @@ services:
       - /home/yggnode/blackhole/:/yggnode-api/blackhole
       - /home/yggnode/Config/yggnodeConf/:/yggnode-api/config:ro
       - /home/yggnode/logs/:/yggnode-api/logs:rw
+    depends_on:
+      - traefik
+      - resync
 networks:
   traefik_network:
     external: True

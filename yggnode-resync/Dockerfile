@@ -5,11 +5,7 @@ WORKDIR /yggnode-resync
 ENV TZ=Europe/Paris
 
 RUN mkdir --parents blackhole/{torrents,rss}/tmp config/
-RUN pip install --upgrade && pip --upgrade setuptools && \
-pip3 install \
-requests \
-PyYAML \
-torrentool
+RUN pip install --upgrade pip && pip install requests PyYAML torrentool
 
 COPY . .
 
