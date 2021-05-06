@@ -97,8 +97,18 @@ if __name__ == '__main__':
         logging.info(cookies)
         for idCat in subCatList + catList:
             logging.info(str(idCat))
-            # get rss feed from idCat
-            rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
+            # get rss feed from idCat and renew cookie if needed
+            try:
+                rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
+                return rssString
+            except (ConnectionError, ReadTimeout) as e:
+                logging.warning(
+                    f"Connection timeout : {e}")
+                cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
+                logging.info(
+                    f"New cookies : {str(cookie)} ")
+                rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
+                return rssString
             if rssString.find("<!DOCTYPE HTML>") == -1:
                 logging.info("Correct response")
                 # download new torrents
