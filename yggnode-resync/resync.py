@@ -104,7 +104,7 @@ if __name__ == '__main__':
             except (ConnectionError, ReadTimeout) as e:
                 logging.warning(
                     f"Connection timeout : {e}")
-                cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
+                global cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
                 logging.info(
                     f"New cookies : {str(cookie)} ")
                 rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
