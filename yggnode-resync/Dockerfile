@@ -9,4 +9,5 @@ RUN pip install --upgrade pip && pip install requests PyYAML torrentool
 
 COPY . .
 
-CMD [ "python", "resync.py" ]
+CMD [ "resync.py" ]
+ENTRYPOINT [ "python3" ]

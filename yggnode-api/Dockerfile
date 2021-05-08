@@ -10,4 +10,5 @@ COPY . .
 
 EXPOSE 5000
 
-CMD [ "python", "yggnode.py" ]
+CMD [ "yggnode.py" ]
+ENTRYPOINT [ "python3" ]

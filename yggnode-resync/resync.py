@@ -76,7 +76,11 @@ if __name__ == '__main__':
     if not (os.path.exists(os.getcwd() + "logs/")):
         os.mkdir(os.getcwd() + 'logs')
 
-    logging.basicConfig(level=logging.INFO, filename=os.getcwd() + "logs/yggnode-resync.log")
+    logging.basicConfig(
+        format='%(levelname)s - %(asctime)s ::   %(message)s', 
+        datefmt='%d/%m/%Y %I:%M:%S', 
+        level=logging.INFO, 
+        filename=os.getcwd() + "logs/yggnode-resync.log")
 
 
     # construct string containing ip and port server
@@ -86,7 +90,8 @@ if __name__ == '__main__':
 
     nodeURL = serverConfiguration["node"]["protocol"] + "://" + str(
         serverConfiguration["node"]["ipAdress"]) + ":" + str(serverConfiguration["node"]["port"])
-    logging.info("Server URL : "+nodeURL)
+    logging.info(
+        f"Server URL : {nodeURL}")
     # read category to be syncing on this node.
     catList = serverConfiguration["Categories"]["id"]
     subCatList = serverConfiguration["sub-Categories"]["id"]
@@ -94,9 +99,11 @@ if __name__ == '__main__':
     # infinite loop to resync every X seconds
     while True:
         cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
-        logging.info(cookies)
+        logging.info(
+            f" Flarr cookies : {str(cookies)} ")
         for idCat in subCatList + catList:
-            logging.info(str(idCat))
+            logging.info(
+                f"Process category : {str(idCat)}")
             # get rss feed from idCat and renew cookie if needed
             try:
                 rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
@@ -106,21 +113,21 @@ if __name__ == '__main__':
                     f"Connection timeout : {e}")
                 global cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
                 logging.info(
-                    f"New cookies : {str(cookie)} ")
+                    f"New cookies : {str(cookies)} ")
                 rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
                 return rssString
             if rssString.find("<!DOCTYPE HTML>") == -1:
-                logging.info("Correct response")
+                logging.info("rssString Correct response")
                 # download new torrents
                 if idCat not in catList:
-                    logging.info("torrent management")
+                    logging.info("Process torrent management")
                     ManageTorrents(rssString, cookies, str(idCat), catList, serverConfiguration["yggDomainName"], logging)
                 # write rss feed and erasing old xml file
                 rssString = (changeDownloadUrl(rssString, nodeURL, serverConfiguration["yggDomainName"], logging))
                 file = open(os.getcwd() + "/blackhole/rss/" + str(idCat) + ".xml", "w")
                 file.write(rssString)
                 file.close()
-                logging.info("RSS feed correctly received and analyzed")
+                logging.info("RSS feed correctly received and analyzed - sleep 5 seconds -")
                 time.sleep(5)
             else:
                 logging.info("Incorrect response : possible cloudfare captcha or new DNS")
