@@ -68,6 +68,23 @@ def getCookies(url, domainName, logger):
 def changeDownloadUrl(rssFeed, serverURL, domainName, logger):
     return re.sub("https://" + domainName + "/rss/", serverURL + "/", rssFeed)
 
+## Return rssString, renew cookies if time out error
+
+
+def get_Rss_Feed(cookies):
+    try:
+        rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
+        return rssString
+    except (ConnectionError, ReadTimeout) as e:
+        logging.warning(
+            f"Connection timeout : {e}")
+        global cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
+        logging.info(
+            f"New cookies : {str(cookies)} ")
+        rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
+        return rssString
+
+
 if __name__ == '__main__':
     confFile = open(os.getcwd() + "/config/annexes.yml", 'r')
     serverConfiguration = yaml.safe_load(confFile)
@@ -105,17 +122,7 @@ if __name__ == '__main__':
             logging.info(
                 f"Process category : {str(idCat)}")
             # get rss feed from idCat and renew cookie if needed
-            try:
-                rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
-                return rssString
-            except (ConnectionError, ReadTimeout) as e:
-                logging.warning(
-                    f"Connection timeout : {e}")
-                global cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
-                logging.info(
-                    f"New cookies : {str(cookies)} ")
-                rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
-                return rssString
+            rssString = get_Rss_Feed(cookies)
             if rssString.find("<!DOCTYPE HTML>") == -1:
                 logging.info("rssString Correct response")
                 # download new torrents
