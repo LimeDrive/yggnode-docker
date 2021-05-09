@@ -17,13 +17,8 @@ app = Flask(__name__)
 with open('config/annexes.yml', 'r') as ymlfile:
     confFile = yaml.load(ymlfile, Loader=yaml.FullLoader)
 
-
-
 @app.route('/')
 def index():
-    # confFile = open(os.getcwd() + "/config/annexes.yml", 'r')
-    # confFile = yaml.safe_load(confFile)
-    # confFile.close()
     return "USE : <br> \
            /download?id={torrent_id}&passkey={your_passkey}<br> \
            /rss?id={category id}&passkey={your_passkey}<br><br> \
@@ -77,8 +72,6 @@ def generatingRSS():
     psw = request.args.get("psw")
     passkey = request.args.get("passkey")
     ipA = confFile["node"]["ipAdress"]
-    # txt = re.sub("passkey=[a-zA-Z0-9]{32}", f"passkey={passkey}", txt)
-    # txt = re.sub(ipA, f"{user}:{psw}@{ipA}", txt)
     txt = re.sub(ipA, f"{user}:{psw}@{ipA}", re.sub("passkey=[a-zA-Z0-9]{32}", f"passkey={passkey}", txt))
     return Response(txt, mimetype='text/xml')
 
@@ -120,9 +113,6 @@ def generateLinks():
 
 @app.route('/status', methods=['GET'])
 def getStatus():
-    # confFile = open(os.getcwd() + '/config/annexes.yml', 'r')
-    # confFile = yaml.safe_load(confFile)
-    # confFile.close()
     now = time.time()
     renderTxt = ""
     for index in range(len(confFile["Categories"]["id"])):
