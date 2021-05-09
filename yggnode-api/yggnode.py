@@ -13,19 +13,24 @@ USER_PASSKEY = "ijnXPgYNat3VMnCsqofjUsU5zePmZr9C"
 
 app = Flask(__name__)
 
+# init config file:
+with open('config/annexes.yml', 'r') as ymlfile:
+    confFile = yaml.load(ymlfile, Loader=yaml.FullLoader)
+
+
 
 @app.route('/')
 def index():
-    confFile = open(os.getcwd() + "/config/annexes.yml", 'r')
-    serverConfiguration = yaml.safe_load(confFile)
-    confFile.close()
+    # confFile = open(os.getcwd() + "/config/annexes.yml", 'r')
+    # confFile = yaml.safe_load(confFile)
+    # confFile.close()
     return "USE : <br> \
            /download?id={torrent_id}&passkey={your_passkey}<br> \
            /rss?id={category id}&passkey={your_passkey}<br><br> \
-           Categories List available <a href=" + str(serverConfiguration["node"]["protocol"])\
-           + "://" + str(serverConfiguration["node"]["ipAdress"]) + ":" + str(serverConfiguration["node"]["port"]) + "/links><strong>Here</strong></a>"+ \
-           "<br><br><a href=" + str(serverConfiguration["node"]["protocol"]) + "://" + str(serverConfiguration["node"]["ipAdress"]) + ":"\
-                             + str(serverConfiguration["node"]["port"]) + "/status>Server last time resynchronization</a>"
+           Categories List available <a href=" + str(confFile["node"]["protocol"])\
+           + "://" + str(confFile["node"]["ipAdress"]) + ":" + str(confFile["node"]["port"]) + "/links><strong>Here</strong></a>"+ \
+           "<br><br><a href=" + str(confFile["node"]["protocol"]) + "://" + str(confFile["node"]["ipAdress"]) + ":"\
+                             + str(confFile["node"]["port"]) + "/status>Server last time resynchronization</a>"
 
 
 @app.route('/download', methods=['GET'])
@@ -68,7 +73,13 @@ def generatingRSS():
     rssFile.close()
     # create a temp rss generated file with both category and passkey as name to avoid potential simultaneous access
     # replace original passkey by the one provided by the user
-    txt = re.sub("passkey=[a-zA-Z0-9]{32}", "passkey=" + request.args.get("passkey"), txt)
+    user = request.args.get("user")
+    psw = request.args.get("psw")
+    passkey = request.args.get("passkey")
+    ipA = confFile["node"]["ipAdress"]
+    # txt = re.sub("passkey=[a-zA-Z0-9]{32}", f"passkey={passkey}", txt)
+    # txt = re.sub(ipA, f"{user}:{psw}@{ipA}", txt)
+    txt = re.sub(ipA, f"{user}:{psw}@{ipA}", re.sub("passkey=[a-zA-Z0-9]{32}", f"passkey={passkey}", txt))
     return Response(txt, mimetype='text/xml')
 
 
@@ -83,37 +94,42 @@ def remoteTempTorrent():
 def generateLinks():
     if request.args.get("passkey") == None or len(request.args.get("passkey")) != 32:
         return render_template('form.html')
+    elif not request.args.get("user"):
+        return render_template('form.html')
+    elif not request.args.get("psw"):
+        return render_template('form.html')
     else:
-        confFile = open(os.getcwd() + '/config/annexes.yml', 'r')
-        serverConfiguration = yaml.safe_load(confFile)
-        confFile.close()
+        url_prot = str(confFile["node"]["protocol"])
+        ipA = str(confFile["node"]["ipAdress"])
+        port = str(confFile["node"]["port"]) # not realy needed
+        CatID = confFile["Categories"]["id"]
+        subCatID = confFile["sub-Categories"]["id"]
+        CatID_label = confFile["Categories"]["idLabel"]
+        subCatID_label = confFile["sub-Categories"]["idLabel"]
+        passkey = str(request.args.get("passkey"))
+        user = str(request.args.get("user"))
+        psw = str(request.args.get("psw"))        
         renderTxt = "Flux généralistes : <br>"
-        for index in range(len(serverConfiguration["Categories"]["id"])):
-            renderTxt += "<strong>" + serverConfiguration["Categories"]["idLabel"][index] + "</strong><br>  " + \
-                         str(serverConfiguration["node"]["protocol"]) + "://" + str(serverConfiguration["node"]["ipAdress"]) +\
-                         ":" + str(serverConfiguration["node"]["port"]) + "/rss?id=" + str(serverConfiguration["Categories"]["id"][index])\
-                         + "&passkey=" + str(request.args.get("passkey")) + "<br>"
+        for index in range(len(CatID)):
+            renderTxt += f"<strong>{str(CatID_label[index])} :</strong><br>{url_prot}://{user}:{psw}@{ipA}:{port}/rss?id={str(CatID[index])}&passkey={passkey}&user={user}&psw={psw}<br>"
         renderTxt += "<br><br><br>Flux détaillés : <br>"
-        for index in range(len(serverConfiguration["sub-Categories"]["id"])):
-            renderTxt += "<strong>" + serverConfiguration["sub-Categories"]["idLabel"][index] + "</strong><br>  " + \
-                         str(serverConfiguration["node"]["protocol"]) + "://" + str(serverConfiguration["node"]["ipAdress"]) +\
-                         ":" + str(serverConfiguration["node"]["port"]) + "/rss?id=" + str(serverConfiguration["sub-Categories"]["id"][index])\
-                         + "&passkey=" + str(request.args.get("passkey")) + "<br>"
+        for index in range(len(subCatID)):
+            renderTxt += f"<strong>{str(subCatID_label[index])} :</strong><br>{url_prot}://{user}:{psw}@{ipA}:{port}/rss?id={str(subCatID[index])}&passkey={passkey}&user={user}&psw={psw}<br>"
 
     return renderTxt
 
 @app.route('/status', methods=['GET'])
 def getStatus():
-    confFile = open(os.getcwd() + '/config/annexes.yml', 'r')
-    serverConfiguration = yaml.safe_load(confFile)
-    confFile.close()
+    # confFile = open(os.getcwd() + '/config/annexes.yml', 'r')
+    # confFile = yaml.safe_load(confFile)
+    # confFile.close()
     now = time.time()
     renderTxt = ""
-    for index in range(len(serverConfiguration["Categories"]["id"])):
-        renderTxt += "<strong>" + serverConfiguration["Categories"]["idLabel"][index] + "</strong> : " + str(time.ctime(os.stat(os.getcwd() + "/blackhole/rss/" + str(serverConfiguration["Categories"]["id"][index]) + ".xml").st_mtime)) + "<br>"
+    for index in range(len(confFile["Categories"]["id"])):
+        renderTxt += "<strong>" + confFile["Categories"]["idLabel"][index] + "</strong> : " + str(time.ctime(os.stat(os.getcwd() + "/blackhole/rss/" + str(confFile["Categories"]["id"][index]) + ".xml").st_mtime)) + "<br>"
     renderTxt += "<br><br>"
-    for index in range(len(serverConfiguration["sub-Categories"]["id"])):
-        renderTxt += "<strong>" + serverConfiguration["sub-Categories"]["idLabel"][index] + "</strong> : " + str(time.ctime(os.stat(os.getcwd() + "/blackhole/rss/" + str(serverConfiguration["sub-Categories"]["id"][index]) + ".xml").st_mtime)) + "<br>"
+    for index in range(len(confFile["sub-Categories"]["id"])):
+        renderTxt += "<strong>" + confFile["sub-Categories"]["idLabel"][index] + "</strong> : " + str(time.ctime(os.stat(os.getcwd() + "/blackhole/rss/" + str(confFile["sub-Categories"]["id"][index]) + ".xml").st_mtime)) + "<br>"
 
     return renderTxt
 
@@ -125,5 +141,5 @@ if __name__ == '__main__':
         os.mkdir(os.getcwd() + '/blackhole/torrents')
     if not (os.path.exists(os.getcwd() + "/blackhole/torrents/tmp")):
         os.mkdir(os.getcwd() + '/blackhole/torrents/tmp')
-
+    
     app.run(host='0.0.0.0', port=5000)
