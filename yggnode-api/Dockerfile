@@ -11,4 +11,4 @@ COPY . .
 EXPOSE 5000
 
 ENTRYPOINT [ "gunicorn" ]
-CMD [ "__init__:app", "-b", "0.0.0.0:5000", "--worker-class=gevent", "--worker-connections=250", "--workers=3"]
+CMD [ "__init__:app", "-b", "0.0.0.0:5000", "--worker-class=gevent", "--worker-connections=250", "--workers=3" ]
