@@ -39,7 +39,7 @@ def ManageTorrents(rssData, CFcookies, idCat, categories, domainName, logger):
 
     headers = {'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     for torrentId in rssTorrentsListId:
-        # if node haven't yet download torrent designated by this ID, then download it through flaresolverr
+        # if node haven't yet download torrent designated by this ID, then download it through Flaresolverr
         if not (os.path.exists(os.getcwd() + "/blackhole/torrents/" + str(re.split("=", torrentId)[1]) + ".torrent")):
             url = f"https://{domainName}/rss/download?id={str(re.split('=', torrentId)[1])}&passkey=TNdVQssYfP3GTDnB3ijgE37c8MVvkASH"
             #######  A VOIR SI SA CRASH ICI ######
@@ -128,11 +128,11 @@ if __name__ == '__main__':
         if not response.ok:
             cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
             logging.info(
-                f" Flarr cookies : {str(cookies)} ")
+                f" Flaresolverr cookies : {str(cookies)} ")
         else:
             cookies = dict()
             logging.info(
-                f" No cookies = not hungry /. event that's not gona happend ")        
+                f" No cookies = not hungry /. event that's not gonna happend ")        
         for idCat in subCatList + catList:
             logging.info(
                 f"Process category : {str(idCat)}")
