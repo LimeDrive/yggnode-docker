@@ -47,7 +47,7 @@ def ManageTorrents(rssData, CFcookies, idCat, categories, domainName):
                 for chunk in r.iter_content(chunk_size=8192):
                     if chunk:
                         torrentFile.write(chunk)
-            logging.info("download torrent --> " + str(re.split("=", torrentId)[1]))
+            logging.info("download torrent --> " + str(torrentId))
             time.sleep(0.5)
 
 def getCookies(url, domainName):
