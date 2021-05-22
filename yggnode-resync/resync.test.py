@@ -9,53 +9,48 @@ import yaml
 import logging
 from retry import retry
 
-def getFromCategory(idCat, CFcookies, catList, domainName, logger):
+def getFromCategory(idCat, cookies, catList, domainName):
     if int(idCat) in catList:
         prefixType = "cat"
     else :
         prefixType = "subcat"
-    url = "https://" + domainName + "/rss?action=generate&type=" + prefixType + "&id=" + idCat + "&passkey=TNdVQssYfP3GTDnB3ijgE37c8MVvkASH"
-    print(url)
+    url = "https://" + domainName + "/rss?action=generate&type=" + prefixType + "&id=" + idCat + "&passkey=TNdVQssYfP3GTDoB3ijgE37c8MVvkASH"
+    logging.debug(f"Url {url}")
     headers = {'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    if not response.ok:
-        return requests.get(url, cookies=CFcookies, headers=headers, timeout=25)
-    return requests.get(url, headers=headers, timeout=25)
+    return (requests.get(url, cookies=cookies, headers=headers, timeout=25)).text
 
 
-def ManageTorrents(rssData, CFcookies, idCat, categories, domainName, logger):
+def ManageTorrents(rssData, CFcookies, idCat, categories, domainName):
     # extract from rss feed all id torrent
     rssTorrentsListId = re.findall("id=[0-9]{6}", rssData)
 
-    # check if rss file for category requested is available
-    if os.path.isfile(os.getcwd() + "/blackhole/rss/" + idCat + ".xml") and (int(idCat) not in categories):
-        oldRssFile = open(os.getcwd() + "/blackhole/rss/" + idCat + ".xml", "r")
-        oldRssString = oldRssFile.read()
-        oldRssFile.close()
-        oldRssTorrentsListId = re.findall("id=[0-9]{6}", oldRssString)
+    # check if rss file for category requested is available and remove old torrents
+    if os.path.exists(f"blackhole/rss/{idCat}.xml") and (int(idCat) not in categories):
+        with open(f"blackhole/rss/{idCat}.xml", "r") as oldRss:
+            oldRssTorrentsListId = re.findall("id=[0-9]{6}", oldRss)
         for oldIdTorrent in oldRssTorrentsListId:
-            if (oldIdTorrent not in rssTorrentsListId) and (os.path.isfile("/blackhole/torrents/" + (re.split("=", oldIdTorrent)[1]) + ".torrent")):
-                print("removing --> " + (re.split("=", oldIdTorrent)[1]))
-                os.remove(os.getcwd() + "/blackhole/torrents/" + (re.split("=", oldIdTorrent)[1]) + ".torrent")
+            if oldIdTorrent not in rssTorrentsListId:
+                oldId = re.split("=", oldIdTorrent)[1]
+                if os.path.exists(f"blackhole/torrents/{oldId}.torrent"):
+                    os.remove(f"blackhole/torrents/{oldId}.torrent")
+                    logging.info(f"removing --> {oldId}.torrent")
 
     headers = {'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-    for torrentId in rssTorrentsListId:
+    for fullTorrentId in rssTorrentsListId:
         # if node haven't yet download torrent designated by this ID, then download it through Flaresolverr
-        if not (os.path.exists(os.getcwd() + "/blackhole/torrents/" + str(re.split("=", torrentId)[1]) + ".torrent")):
-            url = f"https://{domainName}/rss/download?id={str(re.split('=', torrentId)[1])}&passkey=TNdVQssYfP3GTDnB3ijgE37c8MVvkASH"
-            #######  A VOIR SI SA CRASH ICI ######
-            if not response.ok:
-                r = requests.get(url, cookies=CFcookies, headers=headers, stream=True, timeout=25)
-            else:
-                r = requests.get(url, headers=headers, stream=True, timeout=25)
-            #######################################
-            torrentFile = open(os.getcwd() + "/blackhole/torrents/" + str(re.split("=", torrentId)[1]) + ".torrent", "wb")
-            for chunk in r.iter_content(chunk_size=8192):
-                torrentFile.write(chunk)
-            torrentFile.close()
-            print("download torrent --> " + str(re.split("=", torrentId)[1]))
-            time.sleep(1)
+        torrentId = re.split("=", fullTorrentId)[1]
+        if not os.path.exists(f"blackhole/torrents/{torrentId}.torrent"):
+            url = f"https://{domainName}/rss/download?id={torrentId}&passkey=TNdVQssYfP3GTDnB3ijgE37c8MVvkASH"
+            # Timeout with flarrsolver ??
+            r = requests.get(url, cookies=CFcookies, headers=headers, stream=True, timeout=25)
+            with open(f"blackhole/torrents/{torrentId}.torrent", "wb") as torrentFile:
+                for chunk in r.iter_content(chunk_size=8192):
+                    if chunk:
+                        torrentFile.write(chunk)
+            logging.info("download torrent --> " + str(re.split("=", torrentId)[1]))
+            time.sleep(0.5)
 
-def getCookies(url, domainName, logger):
+def getCookies(url, domainName):
     payload = json.dumps({
         "cmd": "request.get",
         "url": "https://" + domainName,
@@ -66,27 +61,32 @@ def getCookies(url, domainName, logger):
         'Content-Type': 'application/json'
     }
     cookies = dict()
-    print(url, payload)
+    logging.debug(url + payload)
     for i in json.loads((requests.request("POST", url + "/v1", headers=headers, data=payload)).text).get(
             'solution').get('cookies'):
         cookies[i.get('name')] = i.get('value')
     return cookies
 
-def changeDownloadUrl(rssFeed, serverURL, domainName, logger):
-    return re.sub("https://" + domainName + "/rss/", serverURL + "/", rssFeed)
+def changeDownloadUrl(rssFeed, serverURL, domainName):
+    return re.sub(f"https://{domainName}/rss/", f"{serverURL}/", rssFeed)
 
-## Return rssString, renew cookies if time out error
+def changeTitleRss(idCat, rssString):
+    catNum = serverConfiguration["sub-Categories"]["id"] + serverConfiguration["Categories"]["id"]
+    catNames = serverConfiguration["sub-Categories"]["idLabel"] + serverConfiguration["Categories"]["idLabel"]
+    index = catNum.index(idCat)
+    catTitle = catNames[index]
+    return re.sub("YggTorrent Tracker BitTorrent Francophone - Flux RSS", f"Yggnode RSS : {catTitle}", rssString)
 
-@retry(tries=5, delay=30, jitter=10, logger=logging.WARNING)
+# Return rssString, renew cookies if time out error
+
+@retry(tries=5, delay=60, jitter=10, logger=logging)
 def get_Rss_Feed(cookies):
     try:
-        rssString = getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"], logging)
-        rssString.raise_for_status()
-        return rssString.text
+        return getFromCategory(str(idCat), cookies, catList, serverConfiguration["yggDomainName"])
     except (ConnectionError, requests.exceptions.RequestException) as e:
         logging.warning(
             f"Connection fails try fix : {e}")
-        cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
+        cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"])
         logging.info(
             f"New cookies : {str(cookies)} ")
         raise
@@ -97,14 +97,15 @@ if __name__ == '__main__':
     with open('config/annexes.yml', 'r') as yamlfile:
         serverConfiguration = yaml.load(yamlfile, Loader=yaml.FullLoader)
 
-    if not (os.path.exists(os.getcwd() + "logs/")):
-        os.mkdir(os.getcwd() + 'logs')
+    os.makedirs("logs", exist_ok=True)
+    os.makedirs("blackhole/torrents/temp", exist_ok=True)
+    os.makedirs("blackhole/rss", exist_ok=True)
 
     logging.basicConfig(
         format='%(levelname)s - %(asctime)s ::   %(message)s', 
-        datefmt='%d/%m/%Y %I:%M:%S', 
-        level=logging.INFO, 
-        filename=os.getcwd() + "/logs/yggnode-resync.log")
+        datefmt='%d/%m/%Y %H:%M:%S', 
+        level=logging.DEBUG, 
+        filename="logs/yggnode-resync.log")
 
 
     # construct string containing ip and port server
@@ -123,10 +124,11 @@ if __name__ == '__main__':
     logging.info("Successfully load categories to sync")
     # infinite loop to resync every X seconds
     while True:
-        response = requests.get(f"https://{str(domainName)}", timeout=2.5)
-        print(str(response))
+        response = requests.get(f"https://{str(domainName)}", timeout=10)
+        logging.debug(
+            f" Response : {str(response)} ")
         if not response.ok:
-            cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"], logging)
+            cookies = getCookies(FlaresolverrPath, serverConfiguration["yggDomainName"])
             logging.info(
                 f" Flaresolverr cookies : {str(cookies)} ")
         else:
@@ -143,14 +145,14 @@ if __name__ == '__main__':
                 # download new torrents
                 if idCat not in catList:
                     logging.info("Process torrent management")
-                    ManageTorrents(rssString, cookies, str(idCat), catList, serverConfiguration["yggDomainName"], logging)
+                    ManageTorrents(rssString, cookies, str(idCat), catList, serverConfiguration["yggDomainName"])
                 # write rss feed and erasing old xml file
-                rssString = (changeDownloadUrl(rssString, nodeURL, serverConfiguration["yggDomainName"], logging))
-                file = open(os.getcwd() + "/blackhole/rss/" + str(idCat) + ".xml", "w")
-                file.write(rssString)
-                file.close()
+                rssString = changeDownloadUrl(rssString, nodeURL, serverConfiguration["yggDomainName"])
+                rssString = changeTitleRss(idCat, rssString)
+                with open(f"blackhole/rss/{str(idCat)}.xml", "w") as file:
+                    file.write(rssString)
                 logging.info("RSS feed correctly received and analyzed - sleep 5 seconds -")
-                time.sleep(5)
+                time.sleep(3)
             else:
                 logging.info("Incorrect response : possible cloudfare captcha or new DNS")
         logging.info("Resync terminated : next in 5 mins")
