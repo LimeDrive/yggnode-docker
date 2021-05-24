@@ -12,7 +12,7 @@ from retry import retry
 # Make Rss Feed URL with config file.
 
 
-def get_Url_Rss_Feed(idCat, catList, domainName):
+def get_Url_Feed(idCat, catList, domainName):
     if int(idCat) in catList:
         prefixType = "cat"
     else:
@@ -24,7 +24,7 @@ def get_Url_Rss_Feed(idCat, catList, domainName):
 # Manages torrents file.
 
 
-def ManageTorrents(rssData, cookies, idCat, categories, domainName):
+def manage_Torrents(rssData, cookies, idCat, categories, domainName):
     # extract from rss feed all id torrent
     rssTorrentsListId = re.findall("id=[0-9]{6}", rssData)
 
@@ -51,7 +51,7 @@ def ManageTorrents(rssData, cookies, idCat, categories, domainName):
 
 
 @retry(tries=25, delay=120, jitter=200, logger=logging)
-def getCookies(url, domainName):
+def get_Cookies(url, domainName):
     payload = json.dumps({
         "cmd": "request.get",
         "url": "https://" + domainName,
@@ -85,7 +85,7 @@ def get_Rss_Feed(url, cookies):
     except (requests.exceptions.ConnectionError, requests.exceptions.RequestException) as e:
         logging.warning(
             f"Connection fails try fix : {e}")
-        cookies = getCookies(
+        cookies = get_Cookies(
             flaresolverrPath, serverConfiguration["yggDomainName"])
         logging.info(
             f"New cookies : {str(cookies)} ")
@@ -110,7 +110,7 @@ def get_Torrents(url, cookies, torrentId):
     except (requests.exceptions.ConnectionError, requests.exceptions.RequestException) as e:
         logging.warning(
             f"Connection fails try fix with 5 mins delay: {e}")
-        cookies = getCookies(
+        cookies = get_Cookies(
             flaresolverrPath, serverConfiguration["yggDomainName"])
         logging.info(
             f"New cookies : {str(cookies)} ")
@@ -119,13 +119,13 @@ def get_Torrents(url, cookies, torrentId):
 # Change Serveur download url.
 
 
-def changeDownloadUrl(rssFeed, serverURL, domainName):
+def change_Download_Url(rssFeed, serverURL, domainName):
     return re.sub(f"https://{domainName}/rss/", f"{serverURL}/", rssFeed)
 
 # Change Rss Titles.
 
 
-def changeTitleRss(idCat, rssString):
+def change_Title(idCat, rssString):
     catNum = serverConfiguration["sub-Categories"]["id"] + \
         serverConfiguration["Categories"]["id"]
     catNames = serverConfiguration["sub-Categories"]["idLabel"] + \
@@ -166,7 +166,7 @@ if __name__ == '__main__':
         logging.debug(
             f"Ygg Response : {str(response)} ")
         if not response.ok:
-            cookies = getCookies(flaresolverrPath, domainName)
+            cookies = get_Cookies(flaresolverrPath, domainName)
             logging.info(
                 f" Flaresolverr cookies : {str(cookies)} ")
         else:
@@ -177,18 +177,18 @@ if __name__ == '__main__':
             logging.info(
                 f"Process category : {str(idCat)}")
             # get rss feed from idCat and renew cookie if needed
-            url = get_Url_Rss_Feed(idCat, catList, domainName)
+            url = get_Url_Feed(idCat, catList, domainName)
             rssString = get_Rss_Feed(url, cookies)
             if rssString.find("<!DOCTYPE HTML>") == -1:
                 logging.info("rssString Correct response")
                 # download new torrents
                 if idCat not in catList:
                     logging.info("Process torrent management")
-                    ManageTorrents(rssString, cookies, str(
+                    manage_Torrents(rssString, cookies, str(
                         idCat), catList, domainName)
                 # Formating
-                rssString = changeDownloadUrl(rssString, nodeURL, domainName)
-                rssString = changeTitleRss(idCat, rssString)
+                rssString = change_Download_Url(rssString, nodeURL, domainName)
+                rssString = change_Title(idCat, rssString)
                 with open(f"blackhole/rss/{str(idCat)}.xml", "w") as file:
                     file.write(rssString)
                 logging.info(
