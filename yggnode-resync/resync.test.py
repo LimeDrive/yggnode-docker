@@ -87,7 +87,7 @@ def get_Rss_Feed(url, cookies):
             f"Connection fails try fix : {e}")
         cookies = get_Cookies(
             flaresolverrPath, serverConfiguration["yggDomainName"])
-        logging.info(
+        logging.debug(
             f"New cookies : {str(cookies)} ")
         raise
 
@@ -112,7 +112,7 @@ def get_Torrents(url, cookies, torrentId):
             f"Connection fails try fix with 5 mins delay: {e}")
         cookies = get_Cookies(
             flaresolverrPath, serverConfiguration["yggDomainName"])
-        logging.info(
+        logging.debug(
             f"New cookies : {str(cookies)} ")
         raise
 
@@ -153,13 +153,13 @@ if __name__ == '__main__':
     flaresolverrPath = f'http://{str(serverConfiguration["flaresolverr"]["ipAdress"])}:{str(serverConfiguration["flaresolverr"]["port"])}'
     # construct string containing ip and port server for serveur Url
     nodeURL = f'{serverConfiguration["node"]["protocol"]}://{str(serverConfiguration["node"]["ipAdress"])}:{str(serverConfiguration["node"]["port"])}'
-    logging.info(
+    logging.debug(
         f"Server URL : {nodeURL}")
     # read category to be syncing on this node.
     catList = serverConfiguration["Categories"]["id"]
     subCatList = serverConfiguration["sub-Categories"]["id"]
     domainName = serverConfiguration["yggDomainName"]
-    logging.info("Successfully load categories to sync")
+    logging.debug("Successfully load categories to sync")
     # infinite loop to resync every X seconds
     while True:
         response = requests.get(f"https://{str(domainName)}", timeout=10)
@@ -167,11 +167,11 @@ if __name__ == '__main__':
             f"Ygg Response : {str(response)} ")
         if not response.ok:
             cookies = get_Cookies(flaresolverrPath, domainName)
-            logging.info(
+            logging.debug(
                 f" Flaresolverr cookies : {str(cookies)} ")
         else:
             cookies = dict()
-            logging.info(
+            logging.debug(
                 f" No cookies = not hungry /. event that's not gonna happend ")
         for idCat in subCatList + catList:
             logging.info(
@@ -180,10 +180,10 @@ if __name__ == '__main__':
             url = get_Url_Feed(idCat, catList, domainName)
             rssString = get_Rss_Feed(url, cookies)
             if rssString.find("<!DOCTYPE HTML>") == -1:
-                logging.info("rssString Correct response")
+                logging.debug("rssString Correct response")
                 # download new torrents
                 if idCat not in catList:
-                    logging.info("Process torrent management")
+                    logging.debug("Process torrent management")
                     manage_Torrents(rssString, cookies, str(
                         idCat), catList, domainName)
                 # Formating
@@ -191,11 +191,11 @@ if __name__ == '__main__':
                 rssString = change_Title(idCat, rssString)
                 with open(f"blackhole/rss/{str(idCat)}.xml", "w") as file:
                     file.write(rssString)
-                logging.info(
+                logging.debug(
                     "RSS feed correctly received and analyzed - sleep 3 seconds -")
                 time.sleep(3)
             else:
-                logging.info(
+                logging.debug(
                     "Incorrect response : possible cloudfare captcha or new DNS")
         logging.info("Resync terminated : next in 5 mins")
         time.sleep(300)
