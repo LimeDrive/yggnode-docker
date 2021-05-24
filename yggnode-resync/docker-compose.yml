@@ -4,8 +4,29 @@ services:
     container_name: flaresolverr
     image: ghcr.io/flaresolverr/flaresolverr:latest
     restart: on-failure
+    networks:
+      - cloudflare
     environment:
       - LOG_LEVEL=info
+      - TZ=Europe/Paris
     #- CAPTCHA_SOLVER=hcaptcha-solver
-    ports:
-      - "8191:8191"
+
+  resync:
+    container_name: resync
+    # image: yggnode/yggnode-resync
+    build: /home/lime/yggnode-docker/yggnode-resync
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Paris
+    networks:
+      - cloudflare
+    volumes:
+      - /home/lime/yggnode-docker/yggnode-resync/blackhole:/yggnode-resync/blackhole:rw
+      - /home/lime/yggnode-docker/yggnode-resync/config:/yggnode-resync/config:ro
+      - /home/lime/yggnode-docker/yggnode-resync/logs:/yggnode-resync/logs:rw
+    depends_on:
+      - flaresolverr
+
+networks: 
+  cloudflare:
+    external: false

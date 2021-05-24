@@ -140,3 +140,5 @@ cython_debug/
 # Serv Lime
 .vscode
 note.txt
+blackhole/
+config/
