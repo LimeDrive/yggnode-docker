@@ -13,7 +13,6 @@ USER_PASSKEY = "ijnXPgYNat3VMnCsqofjUsU5zePmZr9C"
 
 app = Flask(__name__)
 
-
 @app.route('/')
 def index():
     confFile = open(os.getcwd() + "/config/annexes.yml", 'r')
@@ -118,12 +117,4 @@ def getStatus():
     return renderTxt
 
 if __name__ == '__main__':
-    # initialize working environment for python server
-    if not (os.path.exists(os.getcwd() + "/blackhole/rss/")):
-        os.mkdir(os.getcwd() + '/blackhole/rss')
-    if not (os.path.exists(os.getcwd() + "/blackhole/torrents/")):
-        os.mkdir(os.getcwd() + '/blackhole/torrents')
-    if not (os.path.exists(os.getcwd() + "/blackhole/torrents/tmp")):
-        os.mkdir(os.getcwd() + '/blackhole/torrents/tmp')
-
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='localhost', debug=True, port=5000)
