@@ -15,16 +15,20 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    confFile = open(os.getcwd() + "/config/annexes.yml", 'r')
-    serverConfiguration = yaml.safe_load(confFile)
-    confFile.close()
-    return "USE : <br> \
-           /download?id={torrent_id}&passkey={your_passkey}<br> \
-           /rss?id={category id}&passkey={your_passkey}<br><br> \
-           Categories List available <a href=" + str(serverConfiguration["node"]["protocol"])\
-           + "://" + str(serverConfiguration["node"]["ipAdress"]) + ":" + str(serverConfiguration["node"]["port"]) + "/links><strong>Here</strong></a>"+ \
-           "<br><br><a href=" + str(serverConfiguration["node"]["protocol"]) + "://" + str(serverConfiguration["node"]["ipAdress"]) + ":"\
-                             + str(serverConfiguration["node"]["port"]) + "/status>Server last time resynchronization</a>"
+    with open("config/annexes.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)        
+    server = f'{str(cfg["node"]["protocol"])}://{str(cfg["node"]["ipAdress"])}:{str(cfg["node"]["port"])}'
+    name = f'{str(cfg["node"]["ipAdress"])}'
+    
+    return server + name
+
+    # return "USE : <br> \
+    #        /download?id={torrent_id}&passkey={your_passkey}<br> \
+    #        /rss?id={category id}&passkey={your_passkey}<br><br> \
+    #        Categories List available <a href=" + str(serverConfiguration["node"]["protocol"])\
+    #        + "://" + str(serverConfiguration["node"]["ipAdress"]) + ":" + str(serverConfiguration["node"]["port"]) + "/links><strong>Here</strong></a>"+ \
+    #        "<br><br><a href=" + str(serverConfiguration["node"]["protocol"]) + "://" + str(serverConfiguration["node"]["ipAdress"]) + ":"\
+    #                          + str(serverConfiguration["node"]["port"]) + "/status>Server last time resynchronization</a>"
 
 
 @app.route('/download', methods=['GET'])
@@ -80,32 +84,47 @@ def remoteTempTorrent():
 
 @app.route('/links', methods=['GET'])
 def generateLinks():
+    
+    with open("config/annexes.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+        
+    server = f'{str(cfg["node"]["protocol"])}://{str(cfg["node"]["ipAdress"])}:{str(cfg["node"]["port"])}'
+    name = f'{str(cfg["node"]["ipAdress"])}'
+    
     if request.args.get("passkey") == None or len(request.args.get("passkey")) != 32:
-        return render_template('form.html')
+        return render_template('link.html', server=server, name=name)
     else:
-        confFile = open(os.getcwd() + '/config/annexes.yml', 'r')
-        serverConfiguration = yaml.safe_load(confFile)
-        confFile.close()
-        renderTxt = "Flux généralistes : <br>"
-        for index in range(len(serverConfiguration["Categories"]["id"])):
-            renderTxt += "<strong>" + serverConfiguration["Categories"]["idLabel"][index] + "</strong><br>  " + \
-                         str(serverConfiguration["node"]["protocol"]) + "://" + str(serverConfiguration["node"]["ipAdress"]) +\
-                         ":" + str(serverConfiguration["node"]["port"]) + "/rss?id=" + str(serverConfiguration["Categories"]["id"][index])\
-                         + "&passkey=" + str(request.args.get("passkey")) + "<br>"
-        renderTxt += "<br><br><br>Flux détaillés : <br>"
-        for index in range(len(serverConfiguration["sub-Categories"]["id"])):
-            renderTxt += "<strong>" + serverConfiguration["sub-Categories"]["idLabel"][index] + "</strong><br>  " + \
-                         str(serverConfiguration["node"]["protocol"]) + "://" + str(serverConfiguration["node"]["ipAdress"]) +\
-                         ":" + str(serverConfiguration["node"]["port"]) + "/rss?id=" + str(serverConfiguration["sub-Categories"]["id"][index])\
-                         + "&passkey=" + str(request.args.get("passkey")) + "<br>"
+        passkey = str(request.args.get("passkey"))
+        catID = cfg["Categories"]["id"] + cfg["sub-Categories"]["id"]
+        catNAME = cfg["Categories"]["idLabel"] + cfg["sub-Categories"]["idLabel"]
+        data = dict()
+        for index in range(len(catID)):
+            key = str(catNAME[index])
+            url = f"{server}/rss?id={str(catID[index])}&passkey={passkey}"
+            data[key] = url
+        return render_template('genlinks.html', data=data, server=server, name=name)
+            
+        # renderTxt = "Flux généralistes : <br>"
+        # for index in range(len(serverConfiguration["Categories"]["id"])):
+        #     renderTxt += "<strong>" + serverConfiguration["Categories"]["idLabel"][index] + "</strong><br>  " + \
+        #                  str(serverConfiguration["node"]["protocol"]) + "://" + str(serverConfiguration["node"]["ipAdress"]) +\
+        #                  ":" + str(serverConfiguration["node"]["port"]) + "/rss?id=" + str(serverConfiguration["Categories"]["id"][index])\
+        #                  + "&passkey=" + str(request.args.get("passkey")) + "<br>"
+        # renderTxt += "<br><br><br>Flux détaillés : <br>"
+        # for index in range(len(serverConfiguration["sub-Categories"]["id"])):
+        #     renderTxt += "<strong>" + serverConfiguration["sub-Categories"]["idLabel"][index] + "</strong><br>  " + \
+        #                  str(serverConfiguration["node"]["protocol"]) + "://" + str(serverConfiguration["node"]["ipAdress"]) +\
+        #                  ":" + str(serverConfiguration["node"]["port"]) + "/rss?id=" + str(serverConfiguration["sub-Categories"]["id"][index])\
+        #                  + "&passkey=" + str(request.args.get("passkey")) + "<br>"
 
-    return renderTxt
+        return renderTxt
 
 @app.route('/status', methods=['GET'])
 def getStatus():
-    confFile = open(os.getcwd() + '/config/annexes.yml', 'r')
-    serverConfiguration = yaml.safe_load(confFile)
-    confFile.close()
+    with open("config/annexes.yml", 'r') as ymlfile:
+        cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)        
+    server = f'{str(cfg["node"]["protocol"])}://{str(cfg["node"]["ipAdress"])}:{str(cfg["node"]["port"])}'
+    name = f'{str(cfg["node"]["ipAdress"])}'
     now = time.time()
     renderTxt = ""
     for index in range(len(serverConfiguration["Categories"]["id"])):
