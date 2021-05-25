@@ -45,7 +45,7 @@ def manage_Torrents(rssData, cookies, idCat, categories, domainName):
         if not os.path.exists(f"blackhole/torrents/{torrentId}.torrent"):
             url = f"https://{domainName}/rss/download?id={torrentId}&passkey=TNdVQssYfP3GTDnB3ijgE37c8MVvkASH"
             get_Torrents(url, cookies, torrentId)
-            time.sleep(0.5)
+            time.sleep(1)
 
 # Get cloudflare cookies.
 
@@ -67,6 +67,7 @@ def get_Cookies(url, domainName):
             'solution').get('cookies'):
         cookies[i.get('name')] = i.get('value')
     if not len(cookies) == 2:
+        logging.warning(f'Cookies check - not pass : {str(cookies)}')
         raise ValueError(
             " Bad cookie Possible cloudfare captcha, retry loop... and wait...")
     return cookies
@@ -168,11 +169,11 @@ if __name__ == '__main__':
         if not response.ok:
             cookies = get_Cookies(flaresolverrPath, domainName)
             logging.debug(
-                f" Flaresolverr cookies : {str(cookies)} ")
+                f"Flaresolverr cookies : {str(cookies)} ")
         else:
             cookies = dict()
             logging.debug(
-                f" No cookies = not hungry /. event that's not gonna happend ")
+                f"No cookies = not hungry /. event that's not gonna happend ")
         for idCat in subCatList + catList:
             logging.info(
                 f"Process category : {str(idCat)}")
@@ -193,9 +194,9 @@ if __name__ == '__main__':
                     file.write(rssString)
                 logging.debug(
                     "RSS feed correctly received and analyzed - sleep 3 seconds -")
-                time.sleep(3)
+                time.sleep(5)
             else:
                 logging.debug(
                     "Incorrect response : possible cloudfare captcha or new DNS")
         logging.info("Resync terminated : next in 5 mins")
-        time.sleep(300)
+        time.sleep(600)
