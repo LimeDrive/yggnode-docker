@@ -110,6 +110,7 @@ def generateLinks():
 def getStatus():
     with open("config/annexes.yml", 'r') as ymlfile:
         cfg = yaml.load(ymlfile, Loader=yaml.FullLoader)
+    humanize.i18n.activate("fr_FR")
     server = f'{str(cfg["node"]["protocol"])}://{str(cfg["node"]["ipAdress"])}:{str(cfg["node"]["port"])}'
     name = f'{str(cfg["node"]["ipAdress"])}'
     dataCat = dict()
