@@ -17,7 +17,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    {% for k, v in data %}
+                                    {% for k, v in catdata.items() %}
                                         <tr>
                                             <td>{{ k }}</td>
                                             <td>{{ v }}</td>
@@ -25,6 +25,24 @@
                                     {% endfor %}
                                     </tbody>
                                 </table>
+                                </br>
+                                <table id="example" style="width: 100%" class="table table-striped table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Sub-Catégories</th>
+                                            <th>Links</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for k, v in subdata.items() %}
+                                        <tr>
+                                            <td>{{ k }}</td>
+                                            <td>{{ v }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+
                             </div>
                         </div>
                     </div>
@@ -32,5 +50,4 @@
             </div>
         </div>
     </div>
-    <!-- Bootstrap core JS-->
 {% endblock %}
