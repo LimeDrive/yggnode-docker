@@ -44,7 +44,11 @@ def manage_Torrents(rssData, cookies, idCat, categories, domainName):
         torrentId = re.split("=", fullTorrentId)[1]
         if not os.path.exists(f"blackhole/torrents/{torrentId}.torrent"):
             url = f"https://{domainName}/rss/download?id={torrentId}&passkey=TNdVQssYfP3GTDnB3ijgE37c8MVvkASH"
-            get_Torrents(url, cookies, torrentId)
+            try:
+                get_Torrents(url, cookies, torrentId)
+            except:
+                logging.warning("TimeOut on multiple try on the torrent file, probably bad one, Thanks to ygg again.")
+                pass
             time.sleep(1)
 
 # Get cloudflare cookies.
@@ -95,7 +99,7 @@ def get_Rss_Feed(url, cookies):
 # request get .torrent in retry block, and write torrent files.
 
 
-@retry(tries=10, delay=60, jitter=10, logger=logging)
+@retry(tries=3, delay=30, jitter=10, logger=logging)
 def get_Torrents(url, cookies, torrentId):
     headers = {
         'User-agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/532.5 (KHTML, like Gecko) Chrome/4.1.249.1045 Safari/532.5'}
@@ -142,7 +146,7 @@ if __name__ == '__main__':
         serverConfiguration = yaml.load(yamlfile, Loader=yaml.FullLoader)
     # Create folders if doesn't exist.
     os.makedirs("logs", exist_ok=True)
-    os.makedirs("blackhole/torrents/temp", exist_ok=True)
+    os.makedirs("blackhole/torrents/tmp", exist_ok=True)
     os.makedirs("blackhole/rss", exist_ok=True)
     # Logging config
     logging.basicConfig(

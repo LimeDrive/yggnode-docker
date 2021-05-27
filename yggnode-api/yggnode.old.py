@@ -116,28 +116,26 @@ def getStatus():
     dataCat = dict()
     dataSub = dict()   
     for index in range(len(cfg["Categories"]["id"])):
-        if os.path.exists(f'blackhole/rss/{str(cfg["Categories"]["id"][index])}.xml'):
-            now = time.time()
-            osModTime = os.stat(f'blackhole/rss/{str(cfg["Categories"]["id"][index])}.xml').st_mtime
-            lastModTime = now - osModTime
-            val1 = time.strftime(" %d/%m/%Y --- %H:%M:%S ", time.localtime(osModTime))
-            val2 = humanize.naturaltime(lastModTime, minimum_unit="milliseconds")
-            val = (val1, val2)
-            key = cfg["Categories"]["idLabel"][index]
-            dataCat[key] = val
+        now = time.time()
+        osModTime = os.stat(f'blackhole/rss/{str(cfg["Categories"]["id"][index])}.xml').st_mtime
+        lastModTime = now - osModTime
+        val1 = time.strftime(" %d/%m/%Y --- %H:%M:%S ", time.localtime(osModTime))
+        val2 = humanize.naturaltime(lastModTime, minimum_unit="milliseconds")
+        val = (val1, val2)
+        key = cfg["Categories"]["idLabel"][index]
+        dataCat[key] = val
     for index in range(len(cfg["sub-Categories"]["id"])):
-        if os.path.exists(f'blackhole/rss/{str(cfg["sub-Categories"]["id"][index])}.xml'):
-            now = time.time()
-            osModTime = os.stat(f'blackhole/rss/{str(cfg["sub-Categories"]["id"][index])}.xml').st_mtime
-            lastModTime = now - osModTime
-            val1 = time.strftime(" %d/%m/%Y --- %H:%M:%S ", time.localtime(osModTime))
-            val2 = humanize.naturaltime(lastModTime, minimum_unit="milliseconds")
-            val = (val1, val2)
-            key = cfg["sub-Categories"]["idLabel"][index]
-            dataSub[key] = val
+        now = time.time()
+        osModTime = os.stat(f'blackhole/rss/{str(cfg["sub-Categories"]["id"][index])}.xml').st_mtime
+        lastModTime = now - osModTime
+        val1 = time.strftime(" %d/%m/%Y --- %H:%M:%S ", time.localtime(osModTime))
+        val2 = humanize.naturaltime(lastModTime, minimum_unit="milliseconds")
+        val = (val1, val2)
+        key = cfg["sub-Categories"]["idLabel"][index]
+        dataSub[key] = val
     data = {**dataCat, **dataSub}
     return render_template('stats.html', server=server, name=name, data=data)
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5000)
+    app.run(host='localhost', debug=True, port=5000)
