@@ -152,7 +152,7 @@ if __name__ == '__main__':
     logging.basicConfig(
         format='%(levelname)s - %(asctime)s ::   %(message)s',
         datefmt='%d/%m/%Y %H:%M:%S',
-        level=logging.DEBUG,
+        level=os.environ.get("LOGLEVEL", "INFO"),
         filename="logs/yggnode-resync.log")
     # construct string containing ip and port server for flaresolverr
     flaresolverrPath = f'http://{str(serverConfiguration["flaresolverr"]["ipAdress"])}:{str(serverConfiguration["flaresolverr"]["port"])}'
